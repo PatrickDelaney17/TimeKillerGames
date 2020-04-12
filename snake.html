@@ -1,0 +1,268 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <title>Snake</title>
+</head>
+<body>
+   <div class="container">
+        <br />
+        <div class="row">
+            <div class="col"></div>
+            <div class="col">
+                <p>
+                    <h2 class="text-success">Snake</h2>
+                </p>
+            </div>
+            <div class="col"></div>
+        </div>
+        <div class="row">
+            <div class="col">
+
+                <canvas id="canvas"></canvas>
+            </div>
+            <div class="col">
+                <!--Score section-->
+                <div class="card" style="width: 18rem;">
+                    <div class="card-header">
+                        Score Section
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li id="lblscore" class="list-group-item">Your Score: <span id="score" class="badge badge-success"></span></li>
+                        <!--<li id="lblprevscore" class="list-group-item">Previous Score: <span id="lastScore" class="badge badge-light"></span></li>-->
+                        <li class="list-group-item">High Score: <span id="highScore" class="badge badge-warning"></span></li>
+                    </ul>
+                </div>
+                <br />
+                <div class="card">
+                    <div class="card-header">
+                        Things to know
+                    </div>
+                    <div class="card-body">
+
+                        <ul>
+                            <li>
+                                Use arrow keys to move in the desired direction.
+                            </li>
+                            <li>
+                                Use the Space bar to pause game.
+                            </li>
+                            <li>
+                                Grey wall ends the game...avoid it. Same with eating your tail.
+                            </li>
+                        </ul>
+                        <p class="text-center">
+                            <a class="btn btn-outline-success" href="https://betademo.blob.core.windows.net/$web/snake2.html" role="button">Play Snake 2</a>
+
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="w-100"></div>
+            <!--X:<label id="a"></label> <br />
+            <br /> Y: <label id="b"></label>-->
+
+        </div>
+    </div>
+    <script>
+        var canvas, ctx; var scoreVal = 0; var speed = 8;
+        function setscore(scoreVal) {
+
+            document.getElementById("score").innerHTML = scoreVal;
+
+        }
+        function resetscore() {
+            //get current score
+            var current = document.getElementById("score");
+
+            var high = document.getElementById("highScore");
+            var a = parseInt(current.innerText);
+            var b = parseInt(high.innerText);
+            if (a > b) {
+                high.innerHTML = current.innerHTML;
+            }
+
+            // document.getElementById("lastScore").innerHTML = current.innerHTML;
+            //current.innerHTML = "";
+            scoreVal = 0;
+            nextX = (nextY = 0);
+            setscore(scoreVal);
+        }
+
+        window.onload = GoTime();
+
+
+
+        function GoTime() {
+            document.getElementById("highScore").innerHTML = 0;
+            // document.getElementById("lastScore").innerHTML = 0;
+
+            canvas = document.getElementById("canvas");
+            ctx = canvas.getContext("2d");
+            document.addEventListener("keydown", keyDownEvent);
+            var x = speed;
+            setInterval(draw, 1000 / x);
+            setscore(0);
+
+        };
+
+
+        //used to choose the size later
+        function setboundary(param) {
+            if (param < 0) {
+                param = 625;//25*25
+            }
+            else {
+                param = param * param;
+            }
+            document.getElementById("canvas").setAttribute("width", param);
+            document.getElementById("canvas").setAttribute("height", param);
+        }
+        function pause() {
+            alert("Paused, press the spacebar or OK to continue");
+        }
+        var size = 25;
+        // game world
+        var gridSize = (tileSize = size);  // 20 x 20 = 400
+        setboundary(size);
+
+        var nextX = (nextY = 0);
+
+
+        // snake
+        var defaultTailSize = 3;
+        var tailSize = defaultTailSize;
+        var snakeTrail = [];
+        var snakeX = (snakeY = 10);
+
+        // apple
+        var appleX = (appleY = 15);
+
+        var bombX = (bombY = 5);
+        var wallX = (wallY = 6);
+
+        function newgame() {
+            snakeX = (snakeY = 10);
+            bombX = (bombY = 5);
+            appleX = (appleY = 15);
+            wallX = 6;
+            wallY = 5;
+            tailSize = defaultTailSize;
+            resetscore();
+        }
+        // draw
+        function draw() {
+            // move snake in next pos
+            snakeX += nextX;
+            snakeY += nextY;
+
+            // snake over game world?
+            if (snakeX < 0) {
+                snakeX = gridSize - 1;
+                newgame();
+            }
+            if (snakeX > gridSize - 1) {
+                snakeX = 0;
+                newgame();
+            }
+
+            if (snakeY < 0) {
+                snakeY = gridSize - 1;
+                newgame();
+            }
+            if (snakeY > gridSize - 1) {
+                snakeY = 0;
+                newgame();
+            }
+
+            //snake bite apple?
+            if (snakeX == appleX && snakeY == appleY) {
+                tailSize++;
+                scoreVal++;
+                //if (scoreVal == 3)
+                //{
+                //    tailSize++;
+                //}
+                appleX = Math.floor(Math.random() * gridSize);
+                appleY = Math.floor(Math.random() * gridSize);
+                bombX = Math.floor(Math.random() * gridSize);
+                bombY = Math.floor(Math.random() * gridSize);
+                wallX = (bombX + 1)//Math.floor(Math.random() * gridSize);
+                wallY = (bombY)//Math.floor(Math.random() * gridSize);
+                // document.getElementById("a").innerHTML = bombX;
+                // document.getElementById("b").innerHTML = bombY;
+                setscore(scoreVal);
+            }
+
+            if ((snakeX == bombX && snakeY == bombY) || (snakeX == wallX && snakeY == wallY)) {
+                newgame();
+            }
+
+            //paint background
+            ctx.fillStyle = "black";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+
+            // paint snake
+            ctx.fillStyle = "green";
+            for (var i = 0; i < snakeTrail.length; i++) {
+                ctx.fillRect(
+                    snakeTrail[i].x * tileSize,
+                    snakeTrail[i].y * tileSize,
+                    tileSize,
+                    tileSize
+                );
+
+
+                //snake bites it's tail?
+                if (snakeTrail[i].x == snakeX && snakeTrail[i].y == snakeY) {
+                    tailSize = defaultTailSize;
+                    newgame();
+                }
+            }
+
+            // paint apple
+            ctx.fillStyle = "red";
+            ctx.fillRect(appleX * tileSize, appleY * tileSize, tileSize, tileSize);
+
+            // paint bomb
+            ctx.fillStyle = "grey";
+            ctx.fillRect(bombX * tileSize, bombY * tileSize, tileSize, tileSize);
+            ctx.fillRect(wallX * tileSize, wallY * tileSize, tileSize, tileSize);
+            //set snake trail
+            snakeTrail.push({ x: snakeX, y: snakeY });
+            while (snakeTrail.length > tailSize) {
+                snakeTrail.shift();
+            }
+        }
+
+        // input
+        function keyDownEvent(e) {
+            switch (e.keyCode) {
+                case 32:
+                    pause();
+                    break;
+                case 37:
+                    nextX = -1;
+                    nextY = 0;
+                    break;
+                case 38:
+                    nextX = 0;
+                    nextY = -1;
+                    break;
+                case 39:
+                    nextX = 1;
+                    nextY = 0;
+                    break;
+                case 40:
+                    nextX = 0;
+                    nextY = 1;
+                    break;
+            }
+        }
+    </script>
+</body>
+</html>
